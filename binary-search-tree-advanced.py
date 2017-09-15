@@ -116,15 +116,16 @@ def in_order_gen(node):
 
 # Tells us whether a Tree fits the BST property (the inorder traversal must be ascending)
 def is_bst(node) -> bool:
-    gen = in_order_gen(node)
-    prev = next(gen)  # Set the prev value to the root of the tree
-
-    for val in gen:     # Compare traversal values to the value before it
-        if val < prev:
-            return False
-        prev = val
-
-    return True
+    gen = in_order_gen(node)  # In-order traversal generator
+    
+    def nextIsGreater(gen) -> bool:
+        prev = float('-inf')  # Lowest number possible
+        for val in gen:
+            yield val >= prev
+            prev = val
+    # generator comprehension ftw
+    bool_generator = (boolean for boolean in nextIsGreater(gen)) 
+    return all(bool_generator)
 
 # Main
 if __name__ == "__main__":
