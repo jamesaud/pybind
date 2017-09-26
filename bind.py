@@ -58,13 +58,13 @@ method()
 
 
 def bindclass(cls, **kwargs):
-    if hasattr(cls, "bind"): raise Exception("'bind' is already defined")
     # can't take normal args, because 'this' is the first arg
     wrapper_cls = type(cls.__name__, (cls,), {})
     wrapper_cls.__init__ = bind(cls.__init__, **kwargs)
     return wrapper_cls
 
 def bindableclass(cls):
+    if hasattr(cls, "bind"): raise Exception("'bind' is already defined")
     cls.bind = bind(bindclass, cls)
     return cls
 
