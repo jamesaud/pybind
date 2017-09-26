@@ -1,6 +1,8 @@
+from functools import wraps
 
 # Javascript Bind in Python
 def bind(fn, *args, **kwargs):
+    @wraps(fn)
     def inner(*new_args, **new_kwargs):
         return fn(*args, *new_args, **kwargs, **new_kwargs)
     return inner
@@ -14,6 +16,7 @@ print(add3(2))
 
 def bindable(fn):
     def binde(*args, **kwargs):
+        @wraps(fn)
         def inner(*new_args, **new_kwargs):
             return fn(*args, *new_args, **kwargs, **new_kwargs)
         return inner
@@ -23,6 +26,7 @@ def bindable(fn):
 
 # Hmm, binde looks extremely similar to bind...
 def bindable(fn):
+    if hasattr(fn, "bind"): raise Exception("'bind' is already defined")
     fn.bind = bind(bind, fn)
     return fn
 
@@ -32,7 +36,7 @@ def add(a, b):
     return a + b
 
 print("\nBIND 2:")
-print(add.bind(3)(2))
+print(add.bind(3)(5))
 
 
 class Test:
@@ -48,10 +52,40 @@ class Dog:
 
 
 print("\nBIND 3")
-method = bind(Test.call, Dog())
+dog = Dog()
+method = bind(Test.call, dog)
 method()
 
 
+def bindclass(cls, **kwargs):
+    if hasattr(cls, "bind"): raise Exception("'bind' is already defined")
+    # can't take normal args, because 'this' is the first arg
+    wrapper_cls = type(cls.__name__, (cls,), {})
+    wrapper_cls.__init__ = bind(cls.__init__, **kwargs)
+    return wrapper_cls
+
+def bindableclass(cls):
+    cls.bind = bind(bindclass, cls)
+    return cls
+
+@bindableclass
+class Duck:
+    y = 2
+    def __init__(self, x):
+        print("Calling x with " + str(x))
+
+   # Will fail becoming @bindable class if 'bind' is defined
+   # def bind():
+   #     pass
+        
+print("\nBIND 4")
+bound_duck = bindclass(Duck, x=3)
+print("Hi, I'm a clone of " + bound_duck.__name__)
+bound_duck()
+
+bound_duck = Duck.bind(x=4)
+print("\nHi, I'm a clone of " + bound_duck.__name__)
+bound_duck()
 
 class Bound:
 
@@ -71,8 +105,8 @@ class Bound:
 b = Bound(add, 3)
 b.bind(20)
 
-print("BIND 4")
+print("\nBIND 5")
 print(b())
 
 
-    
+  
