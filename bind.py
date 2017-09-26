@@ -26,7 +26,7 @@ def bindable(fn):
 
 # Hmm, binde looks extremely similar to bind...
 def bindable(fn):
-    if hasattr(fn, "bind"): raise Exception("'bind' is already defined")
+    if hasattr(fn, "bind"): raise AttributeError("'bind' is already defined")
     fn.bind = bind(bind, fn)
     return fn
 
@@ -64,7 +64,7 @@ def bindclass(cls, **kwargs):
     return wrapper_cls
 
 def bindableclass(cls):
-    if hasattr(cls, "bind"): raise Exception("'bind' is already defined")
+    if hasattr(cls, "bind"): raise AttributeError("'bind' is already defined")
     cls.bind = bind(bindclass, cls)
     return cls
 
@@ -109,4 +109,4 @@ print("\nBIND 5")
 print(b())
 
 
-  
+    
