@@ -101,12 +101,14 @@ def _makebindableclassmethod(cls, method_name):
     method.bind = bind(_bindmethodtonewclass, cls, method_name)
     return method
 
-@bindableclass
+def isBuiltIn(method_name):
+    return True if (method_name.startswith("__") and method_name.endswith("__")) else False
+
 def bindableclassmethods(cls):
     cls = bindableclass(cls)
     # Remove methods that can't be properly bound to create a new class with
     method_list = [method_name for method_name in dir(cls) if callable(getattr(cls, method_name)) and
-                   not (method_name.startswith("__") and method_name.endswith("__"))]
+                   not isBuiltIn(method_name)]
         
     # Give all user defined methods a ".bind()" method
     for method_name in method_list:
@@ -115,7 +117,7 @@ def bindableclassmethods(cls):
     # Return the new class
     return cls
 
-
+# TODO make @classmethod and @staticmethod bindable with the above function
 
 @bindableclassmethods
 class Quack:
@@ -189,4 +191,77 @@ print(b())
 
 
 
+# META CLASS VERSION TO BIND INSTANCE METHODS
+print("\n--- Meta ---")
+
+class MyMetaTitle(type):
     
+    def __init__(cls, name, bases, dct):
+        print("meta init")
+        return super().__init__(name, bases, dct)
+
+    def __new__(cls, name, parents, dct):
+        dct = {(name.title() if not isBuiltIn(name) else name): val for name, val in dct.items()}
+        cls = super().__new__(cls, name, parents, dct)
+        return cls
+
+class MetaCache(type):
+
+    def __init__(cls, name, parents, dct):
+        objects = set()
+        
+        @wraps(cls.__init__)
+        def AddObjectsToSet(init_function, self, *args, **kwargs):
+            nonlocal objects
+            obj = init_function(self, *args, **kwargs)
+            if obj in objects:
+                obj = objects.get(obj)        
+            else:
+                objects.add(self)
+
+            return obj
+            
+        cls.__init__ = bind(AddObjectsToSet, cls.__init__)
+        cls.get_objs = staticmethod(lambda: objects)
+        
+        return super().__init__(name, parents, dct)
+
+    def __new__(cls, name, parents, dct):
+        if "__eq__" not in dct: raise AttributeError("Missing '__eq__' in " + name)
+        if "__hash__" not in dct: raise AttributeError("Missing '__hash__' in " + name)
+        return super().__new__(cls, name, parents, dct)
+
+    
+class MyMetaDuck(metaclass=MetaCache):
+    def __init__(self, name="tony"):
+        self.name = name
+    
+    def hello(self, x="world"):
+        print("hello " + str(x))
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+
+class MyMetaDog(metaclass=MetaCache):
+    def __init__(self, name="bony"):
+        self.name = name
+    
+    def hello(self, x="world"):
+        print("hello " + str(x))
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+
+duck = MyMetaDuck("Bran")
+print(MyMetaDuck.get_objs())
+
+dog = MyMetaDog("Tommy")
+print(MyMetaDog.get_objs())
