@@ -101,7 +101,7 @@ class Node:
 
 # In order traversal of tree that returns list of values.
 def in_order_traversal(node) -> list:
-    if node == None:
+    if node is None:
         return []
     return in_order_traversal(node.left) + [node.val] + in_order_traversal(node.right)
 
@@ -123,6 +123,7 @@ def is_bst(node) -> bool:
         for val in gen:
             yield val >= prev
             prev = val
+            
     # generator comprehension ftw
     bool_generator = (boolean for boolean in nextIsGreater(gen)) 
     return all(bool_generator)
