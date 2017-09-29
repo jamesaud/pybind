@@ -1,13 +1,17 @@
 from functools import wraps
+from collections import namedtuple
+import inspect
+import types
 
 #### FUNCTION BINDING DECORATORS
 
 # Javascript Bind in Python
 def bind(fn, *args, **kwargs):
     @wraps(fn)
-    def inner(*new_args, **new_kwargs):
-        return fn(*args, *new_args, **kwargs, **new_kwargs)
+    def inner(*a, **kw):
+        return fn(*args, *a, **kwargs, **kw)
     return inner
+
 
 def add(a, b):
     return a + b
@@ -19,8 +23,8 @@ print(add3(2))
 def bindable(fn):
     def binde(*args, **kwargs):
         @wraps(fn)
-        def inner(*new_args, **new_kwargs):
-            return fn(*args, *new_args, **kwargs, **new_kwargs)
+        def inner(*a, **kw):
+            return fn(*args, *a, **kwargs, **kw)
         return inner
     fn.bind = binde
     return fn
@@ -28,7 +32,6 @@ def bindable(fn):
 
 # Hmm, binde looks extremely similar to bind...
 def bindable(fn):
-    if hasattr(fn, "bind"): raise AttributeError("'bind' is already defined")
     fn.bind = bind(bind, fn)
     return fn
 
@@ -41,103 +44,123 @@ print("\nBIND 2:")
 print(add.bind(3)(5))
 
 
-class Cat:
-    def method(self):
-        print("TEST METHOD")
-
-    def call(self):
-        return self.method()
-
-class Dog:
-    def method(self):
-        print("Dog METHOD")
-
-
-print("\nBIND 3")
-dog = Cat()
-cat = Cat()
-cat.call = bind(Cat.call, dog)
-cat.call()
-
-
 #### CLASS BINDING DECORATORS
 
-def _gen_subclass(cls):
-    return type(cls.__name__, (cls,), {})
 
-def _bindedclassmethod(cls, method_name, *args, **kwargs):
-    """ Passes 'self' as the first parameter to a class function, allowing for binding of values -
-        otherwise the user may bind values to the 'self' parameter that aren't actually an instance. """
-    @wraps(getattr(cls, method_name))
-    def bind_method(self, *a, **kw):
-        return bind(getattr(cls, method_name), self, *args, *a, **kwargs, **kw)()
-    
-    return bind_method
+# UTILITIES
+def clone_class(cls):
+    # Recreate the class
+    return type(cls.__name__, cls.__bases__, dict(cls.__dict__))
 
-def _bindmethodtonewclass(cls, method_name, *args, **kwargs):
-    """ Creates a new class, with the given method bound with parameters"""
-    wrapper_cls = _gen_subclass(cls)
-    setattr(wrapper_cls, method_name, _bindedclassmethod(cls, method_name, *args, **kwargs))
+def method_is_classmethod(cls, method_name):
+    return isinstance(inspect.getattr_static(cls, method_name), classmethod)
+
+def method_is_staticmethod(cls, method_name):
+    return isinstance(inspect.getattr_static(cls, method_name), staticmethod)
+
+def isBuiltIn(name):
+    return True if (name.startswith("__") and name.endswith("__")) else False
+
+def get_user_defined_methods(cls):
+    return [method_name for method_name in dir(cls) if callable(getattr(cls, method_name)) and
+     not isBuiltIn(method_name)]
+
+
+def create_class_with_bound_method(cls, method_name, *args, **kwargs):
+    """ Creates a new class, with the given method bound with parameters *args and **kwargs """
+    method = getattr(cls, method_name)
+
+    @wraps(method)
+    def pass_self_last(self, *a, **kw):
+        """ Passes 'self' as the first argument """
+        return method(self, *args, *a, **kwargs, **kw)
+
+    wrapper_cls = clone_class(cls)
+    setattr(wrapper_cls, method_name, pass_self_last)
     return wrapper_cls
+
+
+def create_class_with_bound_staticmethod(cls, method_name, *args, **kwargs):
+    """ Creates a new class, with the given method bound with parameters"""
+    wrapper_cls = clone_class(cls)
+    setattr(wrapper_cls, method_name, bind(getattr(cls, method_name), *args, **kwargs))
+    return wrapper_cls
+
 
 def bindclass(cls, *args, **kwargs):
     """ Generates new class where the __init__ function of the class has default parameters """
-    ## _bindmethodtonewclass  functions like the below two lines
-    
-    # wrapper_cls = _gen_subclass(cls)
-    # wrapper_cls.__init__ = _bindedclassmethod(cls, "__init__", *args, **kwargs)
-    return _bindmethodtonewclass(cls, "__init__", *args, **kwargs)
+    return create_class_with_bound_method(cls, "__init__", *args, **kwargs)
+
 
 def bindableclass(cls):
-    if hasattr(cls, "bind"): raise AttributeError("'bind' is already defined in " + cls.__name__)
-    cls.bind = bind(bindclass, cls)
+    # A class with the function .bind() added onto it
+    cls.bind = bind(create_class_with_bound_method, cls, "__init__")
     return cls
 
-def _makebindableclassmethod(cls, method_name):
-    method = getattr(cls, method_name)
 
+def _make_bindable_method(cls, method_name):
+    method = getattr(cls, method_name)
     # method.bind() will return a new class based on the method's current class
-    # bind is the same as:   lambda *a, **kw: _bindmethodtonewclass(cls, method_name, *a, **kw)
-    method.bind = bind(_bindmethodtonewclass, cls, method_name)
+    method.bind = bind(create_class_with_bound_method, cls, method_name)
     return method
 
-def isBuiltIn(method_name):
-    return True if (method_name.startswith("__") and method_name.endswith("__")) else False
 
-def bindableclassmethods(cls):
+def _make_bindable_staticmethod(cls, method_name):
+    method = getattr(cls, method_name)
+    method.bind = bind(create_class_with_bound_staticmethod, cls, method_name)
+    return method
+
+
+# Decorator
+def bindablemethods(cls):
     cls = bindableclass(cls)
-    # Remove methods that can't be properly bound to create a new class with
-    method_list = [method_name for method_name in dir(cls) if callable(getattr(cls, method_name)) and
-                   not isBuiltIn(method_name)]
-        
+    method_list = get_user_defined_methods(cls)
+
     # Give all user defined methods a ".bind()" method
     for method_name in method_list:
-        _makebindableclassmethod(cls, method_name)
+        if method_is_classmethod(cls, method_name):
+            pass
+
+        elif method_is_staticmethod(cls, method_name):
+            _make_bindable_staticmethod(cls, method_name)
+
+        else:
+            _make_bindable_method(cls, method_name)
 
     # Return the new class
     return cls
 
-# TODO make @classmethod and @staticmethod bindable with the above function
 
-@bindableclassmethods
+# TODO make bind work with @classmethods
+
+@bindablemethods
 class Quack:
     def hello(self, y):
         print("hello " + y)
 
+    @classmethod
+    def world(cls):
+        print("WORLD")
+
+    @staticmethod
+    def awesome(x):
+        print("AWESOME " + x)
+
+
 print("\nBind All Class Methods")
-NewQuack = Quack.hello.bind("world")  # should technically be a new class
+NewQuack = Quack.hello.bind("world")  # should be a new class
 NewQuack().hello()
 
-                
+NewQuack = Quack.awesome.bind("a")
+NewQuack.awesome()
+
 @bindableclass
 class Duck:
     def __init__(self, x, y="hey", z="world"):
         print("Calling x with " + str(x) + y + z)
-        
-   # Will fail becoming @bindable class if 'bind' is defined
-   # def bind():
-   #     pass
-        
+
+
+Buck.bind()
 print("\nBIND 4")
 bound_duck = bindclass(Duck, 3)
 bound_duck = bindclass(bound_duck, "my")
@@ -167,9 +190,9 @@ class Bound:
         def callback(*args, **kwargs):
             result = fn(*args, **kwargs)
             return fn2(result)
-                
+
         return callback
-        
+
     def bind(self, *args, **kwargs):
         self.fn = self.__bind(self.fn, *args, **kwargs)
         return self
@@ -177,6 +200,7 @@ class Bound:
     def add_callback(self, fn):
         self.fn = self.__callback(self.fn, fn)
         return self
+
 
 b = Bound(add, 3)
 b.bind(20)
@@ -188,80 +212,14 @@ b.add_callback(str).add_callback(lambda x: x*3)
 print(b())
 
 
-
-
-
 # META CLASS VERSION TO BIND INSTANCE METHODS
 print("\n--- Meta ---")
 
 class MyMetaTitle(type):
-    
-    def __init__(cls, name, bases, dct):
-        print("meta init")
-        return super().__init__(name, bases, dct)
-
     def __new__(cls, name, parents, dct):
+        # Makes every attribute a title
         dct = {(name.title() if not isBuiltIn(name) else name): val for name, val in dct.items()}
-        cls = super().__new__(cls, name, parents, dct)
-        return cls
-
-class MetaCache(type):
-
-    def __init__(cls, name, parents, dct):
-        objects = set()
-        
-        @wraps(cls.__init__)
-        def AddObjectsToSet(init_function, self, *args, **kwargs):
-            nonlocal objects
-            obj = init_function(self, *args, **kwargs)
-            if obj in objects:
-                obj = objects.get(obj)        
-            else:
-                objects.add(self)
-
-            return obj
-            
-        cls.__init__ = bind(AddObjectsToSet, cls.__init__)
-        cls.get_objs = staticmethod(lambda: objects)
-        
-        return super().__init__(name, parents, dct)
-
-    def __new__(cls, name, parents, dct):
-        if "__eq__" not in dct: raise AttributeError("Missing '__eq__' in " + name)
-        if "__hash__" not in dct: raise AttributeError("Missing '__hash__' in " + name)
         return super().__new__(cls, name, parents, dct)
 
-    
-class MyMetaDuck(metaclass=MetaCache):
-    def __init__(self, name="tony"):
-        self.name = name
-    
-    def hello(self, x="world"):
-        print("hello " + str(x))
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __hash__(self):
-        return hash(self.name)
 
 
-class MyMetaDog(metaclass=MetaCache):
-    def __init__(self, name="bony"):
-        self.name = name
-    
-    def hello(self, x="world"):
-        print("hello " + str(x))
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __hash__(self):
-        return hash(self.name)
-
-
-duck = MyMetaDuck("Bran")
-print(MyMetaDuck.get_objs())
-
-dog = MyMetaDog("Tommy")
-print(MyMetaDog.get_objs())
