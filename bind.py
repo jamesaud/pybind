@@ -3,8 +3,10 @@ from collections import namedtuple
 import inspect
 import types
 
-#### FUNCTION BINDING DECORATORS
-
+"""
+ FUNCTION BINDING DECORATORS:
+ Decorators that bind methods of functions to generate a new, identical functions with the bound variables
+"""
 # Javascript Bind in Python
 def bind(fn, *args, **kwargs):
     @wraps(fn)
@@ -44,7 +46,10 @@ print("\nBIND 2:")
 print(add.bind(3)(5))
 
 
-#### CLASS BINDING DECORATORS
+"""
+ CLASS BINDING DECORATORS:
+ Decorators that bind methods of the CLASS to generate a new, identical class with the bound methods
+"""
 
 
 # UTILITIES
@@ -66,17 +71,24 @@ def get_user_defined_methods(cls):
      not isBuiltIn(method_name)]
 
 
-def create_class_with_bound_method(cls, method_name, *args, **kwargs):
-    """ Creates a new class, with the given method bound with parameters *args and **kwargs """
-    method = getattr(cls, method_name)
+def bind_self_last(obj, method_name, *args, **kwargs):
+    """ Binds a method, allowsing self to be passed when the method is called """
+    method = getattr(obj, method_name)
 
     @wraps(method)
     def pass_self_last(self, *a, **kw):
         """ Passes 'self' as the first argument """
         return method(self, *args, *a, **kwargs, **kw)
 
+    return pass_self_last
+
+
+def create_class_with_bound_method(cls, method_name, *args, **kwargs):
+    """ Creates a new class, with the given method bound with parameters *args and **kwargs """
+    method = getattr(cls, method_name)
+
     wrapper_cls = clone_class(cls)
-    setattr(wrapper_cls, method_name, pass_self_last)
+    setattr(wrapper_cls, method_name, bind_self_last(cls, method_name, *args, **kwargs))
     return wrapper_cls
 
 
@@ -132,6 +144,10 @@ def bindablemethods(cls):
 
 
 # TODO make bind work with @classmethods
+# TODO make @bindablemethods work on object that instantiates
+# TODO make @bindableclass
+# TODO make @bindableinit
+# TODO make @bindableinstancemethods
 
 @bindablemethods
 class Quack:
@@ -160,7 +176,6 @@ class Duck:
         print("Calling x with " + str(x) + y + z)
 
 
-Buck.bind()
 print("\nBIND 4")
 bound_duck = bindclass(Duck, 3)
 bound_duck = bindclass(bound_duck, "my")
@@ -172,7 +187,33 @@ print("\nHi, I'm a clone of " + bound_duck.__name__)
 bound_duck()
 
 
-### ENCAPSULATED FUNCTION BINDING
+"""
+ INSTANCE BINDING DECORATORS:
+ Decorators that bind methods of the INSTANCE to update the INSTANCE with the bound methods
+"""
+
+def bind_instance_method(obj, method_name, *args, **kwargs):
+    """ Binds a method on the instance of a class """
+    method = getattr(obj, method_name)
+    return method
+
+class Muck:
+
+    def hello(self, greeting):
+        print("hello " + greeting)
+
+m = Muck()
+print("\n--- BIND INSTANCE METHOD ---")
+bind_instance_method(m, "hello", "world")
+
+
+
+
+
+"""
+ Function BINDING Class:
+ Class to wrap a function and bind it.
+"""
 
 class Bound:
 
