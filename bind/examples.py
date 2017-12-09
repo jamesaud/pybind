@@ -73,7 +73,7 @@ class Dog():
 
 LilDog = Dog.bind("Lil")
 pup = LilDog("Pup")
-pup.greet()
+pup.greet()                     # >> Hello, Bark, my name is Lil Pup
 
 
 ### bindable_class_methods: Creates new class with '.bind' that passes default arguments to the function called with '.bind'
@@ -94,7 +94,7 @@ class Dog():
 
 FunnyDog = Dog.bark.bind("Haha")
 dog = FunnyDog("Funny", "Dog")
-dog.bark("You Look Nice")
+dog.bark("You Look Nice")               # >> Haha ~BARK~ You Look Nice
 
 
 
@@ -118,11 +118,11 @@ class Dog(metaclass=BindableMeta):
 
 
 Doggo = Dog.bind("Lassi")
-Doggo().greet()
+Doggo().greet()             # >> Hello, Bark, my name is Lassi
 
 dog = Dog()
 dog.bark.bind("Hi")
-dog.bark()
+dog.bark()                  # >> Hi
 
 
 class Pup(Dog):
@@ -134,4 +134,4 @@ class Pup(Dog):
 """ Subclassed """
 SoloPup = Pup.pet.bind("when I pet myself")
 pup = SoloPup()
-pup.pet()
+pup.pet()                       # >> That feels good when I pet myself!
