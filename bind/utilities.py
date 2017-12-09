@@ -1,6 +1,5 @@
 import inspect
 import copy
-import dill
 
 
 # UTILITIES

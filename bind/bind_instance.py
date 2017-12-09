@@ -15,7 +15,6 @@ def bind_instance_method(obj, method_name, *args, **kwargs):
     return method
 
 
-
 def bind_instance_methods(obj):
     methods = get_user_defined_methods(obj)
     for method_name in methods:

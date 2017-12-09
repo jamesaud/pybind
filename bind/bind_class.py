@@ -7,7 +7,7 @@ from bind_functions import *
 
 
 def bind_self_last(obj, method_name, *args, **kwargs):
-    """ Binds a method, allowsing self to be passed when the method is called """
+    """ Binds a method, allowing self to be passed when the method is called """
     method = getattr(obj, method_name)
 
     @wraps(method)
@@ -21,7 +21,6 @@ def bind_self_last(obj, method_name, *args, **kwargs):
 def create_class_with_bound_instancemethod(cls, method_name, *args, **kwargs):
     """ Creates a new class, with the given method bound with parameters *args and **kwargs """
     wrapper_cls = subclass(cls)
-
     setattr(wrapper_cls, method_name, bind_self_last(cls, method_name, *args, **kwargs))
     return wrapper_cls
 
@@ -43,7 +42,6 @@ def create_class_with_bound_classmethod(cls, method_name, *args, **kwargs):
 def bindclass(cls, *args, **kwargs):
     """ Generates new class where the __init__ function of the class has default parameters """
     return create_class_with_bound_instancemethod(cls, "__init__", *args, **kwargs)
-
 
 
 def bindableclass(cls):
@@ -76,7 +74,8 @@ def bindable_class_methods(cls):
 
 def unbind_class_methods(cls):
 
-    if 'bind' in cls.__dict__ and callable(cls.__dict__['bind']): delattr(cls, 'bind')
+    if 'bind' in cls.__dict__ and callable(cls.__dict__['bind']):
+        delattr(cls, 'bind')
 
     for method_name in get_user_defined_methods(cls):
         method = getattr(cls, method_name)
