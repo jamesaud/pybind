@@ -119,9 +119,3 @@ class Bound:
         return self
 
 
-class MyMetaTitle(type):
-    def __new__(cls, name, parents, dct):
-        # Makes every attribute a title
-        dct = {(name.title() if not isBuiltIn(name) else name): val for name, val in dct.items()}
-        return super().__new__(cls, name, parents, dct)
-
