@@ -28,11 +28,3 @@ def bindable(fn):
     fn.bind = bind(bind, fn)
     return fn
 
-def add(a, b):
-    return a + b
-
-@bindable
-def add(a, b):
-    return a + b
-
-
