@@ -124,6 +124,8 @@ dog = Dog()
 dog.bark.bind("Hi")
 dog.bark()                  # >> Hi
 
+BarkDog = Dog.bark.bind("Woof", "Woof")    # > Woof Bark! Woof
+BarkDog().bark()
 
 class Pup(Dog):
 

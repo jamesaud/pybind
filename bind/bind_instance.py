@@ -1,6 +1,6 @@
 from utilities import *
 from bind_functions import *
-
+from functools import wraps
 
 """
  INSTANCE BINDING DECORATORS:
@@ -26,14 +26,15 @@ def bind_instance_methods(obj):
 
 # decorator
 def bindable_instance_methods(cls):
-    new = cls.__new__
+    init = cls.__init__
 
-    def bind_methods(*args, **kwargs):
-        obj = new(*args, **kwargs)
-        bind_instance_methods(obj)
-        return obj
+    @wraps(cls.__init__)
+    def bind_methods(self, *args, **kwargs):
+        bind_instance_methods(self)
+        return init(self, *args, **kwargs)
 
-    cls.__new__ = bind_methods
+    cls.__init__ = bind_methods
+
     return cls
 
 
