@@ -1,7 +1,9 @@
 # Awesome Codes
 
+Check out the 'bind' library for javascript's bind in Python!
 
-In-order generator tree traversal is pretty cool https://github.com/jamesaud/interesting-code/blob/master/binary-search-tree-advanced.py#L110
+https://github.com/jamesaud/interesting-code/tree/master/bind
+
+In-order generator tree traversal using generators is pretty neat https://github.com/jamesaud/interesting-code/blob/master/binary-search-tree-advanced.py#L110
 
 
-or, check out the 'bind' library for javascript's bind in Python!
