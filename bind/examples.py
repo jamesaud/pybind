@@ -29,6 +29,7 @@ add3 = add.bind(3)
 print(add3(5))              # >> 8
 
 
+# bound allows for callbacks
 @bound
 def add(a, b):
     return a + b
