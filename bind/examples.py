@@ -1,4 +1,4 @@
-from bind_functions import bindable, bind
+from bind_functions import bindable, bind, bound
 from bind_class import bindableclass
 from bind_class import bindable_class_methods
 from bind_instance import bindable_instance_methods
@@ -8,11 +8,10 @@ from MetaBind import BindableMeta
 ##### FUNCTIONS #####
 
 def add(a, b):
-    """ Adds two numbers """
     return a + b
 
 
-""" "'bind' allows assigning default arguments to a function """
+###  'bind' allows assigning default arguments to a function ###
 add3 = bind(add, 3)
 print(add3(4))              # >> 7
 
@@ -21,15 +20,24 @@ print(always10())           # >> 10
 
 
 
-""" 'bindable' is a decorator that adds a method called '.bind' to a function """
+###  'bindable' is a decorator that adds a method called '.bind' to a function  ###
 @bindable
 def add(a, b):
-    """ Adds two numbers """
     return a + b
 
 add3 = add.bind(3)
 print(add3(5))              # >> 8
 
+
+@bound
+def add(a, b):
+    return a + b
+
+add3 = add.bind(3)
+print(add3(8))              # >> 11
+
+add3.add_callback(lambda x: print(str(x) + " squared is: " + str(x**2)))     #  >> 11 squared is: 121
+add3(8)
 
 
 ##### INSTANCES #####
@@ -40,15 +48,14 @@ print(add3(5))              # >> 8
 class Dog():
 
     def bark(self, *args):
-        """ Puts bark in between every argument passed to the function and prints it """
-        print(" ~BARK~ ".join(args))
+        print(*args)
 
 
 
 dog = Dog()
-dog.bark.bind("hi", "there")    # >> hi ~BARK~ there
+dog.bark.bind("hi", "there")    # >> hi there
 dog.bark()
-dog.bark("friend!")             # >> hi ~BARK~ there ~BARK~ friend!
+dog.bark("friend!")             # >> hi there friend!
 
 
 
@@ -68,7 +75,7 @@ class Dog():
 
     def bark(self, *args):
         """ Puts bark in between every argument passed to the function and prints it """
-        print(" ~BARK~ ".join(args))
+        print(*args)
 
 
 LilDog = Dog.bind("Lil")
@@ -89,12 +96,12 @@ class Dog():
 
     def bark(self, *args):
         """ Puts bark in between every argument passed to the function and prints it """
-        print(" ~BARK~ ".join(args))
+        print(*args)
 
 
 FunnyDog = Dog.bark.bind("Haha")
 dog = FunnyDog("Funny", "Dog")
-dog.bark("You Look Nice")               # >> Haha ~BARK~ You Look Nice
+dog.bark("You Look Nice")               # >> Haha You Look Nice
 
 
 
@@ -113,7 +120,7 @@ class Dog(metaclass=BindableMeta):
 
     def bark(self, *args):
         """ Puts bark in between every argument passed to the function and prints it """
-        print(" Bark! ".join(args))
+        print(*args)
 
 
 
@@ -133,7 +140,7 @@ class Pup(Dog):
         print("That feels good " + name + "!")
 
 
-""" Subclassed """
+### Subclassed
 SoloPup = Pup.pet.bind("when I pet myself")
 pup = SoloPup()
 pup.pet()                       # >> That feels good when I pet myself!

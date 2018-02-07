@@ -86,36 +86,3 @@ def unbind_class_methods(cls):
 
 
 
-"""
- Function BINDING Class:
- Class to wrap a function and bind it.
-"""
-
-class Bound:
-
-    def __init__(self, fn, *args, **kwargs):
-        self.fn = self.__bind(fn, *args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        return self.fn(*args, **kwargs)
-
-    def __bind(self, fn, *args, **kwargs):
-        return lambda *a, **kw: fn(*args, *a, **kwargs, **kw)
-
-    def __callback(self, fn, fn2):
-        @wraps(fn)
-        def callback(*args, **kwargs):
-            result = fn(*args, **kwargs)
-            return fn2(result)
-
-        return callback
-
-    def bind(self, *args, **kwargs):
-        self.fn = self.__bind(self.fn, *args, **kwargs)
-        return self
-
-    def add_callback(self, fn):
-        self.fn = self.__callback(self.fn, fn)
-        return self
-
-
