@@ -1,4 +1,4 @@
-from bind_functions import bindable, bind, bound
+from bind_functions import bindable, bind, bound, callback
 
 
 def add(a, b):
@@ -34,6 +34,12 @@ def add(a, b):
 
 add3 = add.bind(3)
 print(add3(8))              # >> 11
+
+
+# callbacks
+@callback
+def add(a, b):
+    return a + b
 
 add3.add_callback(lambda x: print(str(x) + " squared is: " + str(x**2)))     #  >> 11 squared is: 121
 add3(8)
