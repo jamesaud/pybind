@@ -24,7 +24,6 @@ pup.greet()                     # >> Hello, Bark, my name is Lil Pup
 
 @bindable_class_methods
 class Dog():
-
     def __init__(self, fname, lname):
         self.name = fname + " " + lname
 
