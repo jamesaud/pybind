@@ -7,9 +7,6 @@ import copy
 def subclass(cls):
     return type(cls.__name__ + ".", (cls,), {})  # unique name
 
-def get_user_defined_attrs(cls):
-    return {attr_name: copy.deepcopy(getattr(cls, attr_name)) for attr_name in dir(cls) if not isBuiltIn(attr_name)}
-
 def method_is_classmethod(cls, method_name):
     return isinstance(inspect.getattr_static(cls, method_name), classmethod)
 
