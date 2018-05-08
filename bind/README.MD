@@ -1,9 +1,8 @@
 # Recreating Javascript's 'bind' in Python
 
-## I thought it would be fun :) I will soon publish a Medium article about it.
+I will soon publish a Medium article about this.
 
-## Check the "examples" directory to see how it works!
-
+Check the "examples" directory to see how it works: https://github.com/jamesaud/interesting-code/tree/master/bind/examples
 
 Tested and working on Python 3.5 
 
