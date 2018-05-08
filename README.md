@@ -1,10 +1,13 @@
 # Recreating Javascript's 'bind' in Python
 
-I will soon publish a Medium article about this.
+Check it out on Medium:
 
-Check the "examples" directory to see how it works: https://github.com/jamesaud/interesting-code/tree/master/bind/examples
+https://medium.com/@audretschjames/replicating-javascript-bind-in-python-a56d6779db68
 
-Tested and working on Python 3.5 
+See the "examples" directory: 
+https://github.com/jamesaud/interesting-code/tree/master/bind/examples
+
+Tested and working on Python 3.5/3.6
 
 No external dependencies.
 
