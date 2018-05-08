@@ -5,16 +5,14 @@ from bind_class import bindableclass, bindable_class_methods
 
 @bindableclass
 class Dog():
-
     def __init__(self, fname, lname):
         self.name = fname + " " + lname
 
+    def bark(self, *args):
+        print(*args)
+
     def greet(self):
         print("Hello, Bark, my name is " + self.name)
-
-    def bark(self, *args):
-        """ Puts bark in between every argument passed to the function and prints it """
-        print(*args)
 
 
 LilDog = Dog.bind("Lil")
