@@ -7,9 +7,6 @@ import copy
 def subclass(cls):
     return type(cls.__name__ + ".", (cls,), {})
 
-def copy_class(cls):
-    return dill.copy(cls)
-
 def get_user_defined_attrs(cls):
     return {attr_name: copy.deepcopy(getattr(cls, attr_name)) for attr_name in dir(cls) if not isBuiltIn(attr_name)}
 
