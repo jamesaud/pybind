@@ -1,6 +1,5 @@
 from bind_instance import bindable_instance_methods
-from bind_class import bindable_class_methods, unbind_class_methods
-
+from bind_class import bindable_class_methods
 
 class BindableClassMeta(type):
     def __init__(cls, bases, name, dct):
