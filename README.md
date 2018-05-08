@@ -1,9 +1,12 @@
-# Awesome Codes
+# Recreating Javascript's 'bind' in Python
 
-Check out the 'bind' library for javascript's bind in Python!
+I will soon publish a Medium article about this.
 
-https://github.com/jamesaud/interesting-code/tree/master/bind
+Check the "examples" directory to see how it works: https://github.com/jamesaud/interesting-code/tree/master/bind/examples
 
-In-order generator tree traversal using generators is pretty neat https://github.com/jamesaud/interesting-code/blob/master/binary-search-tree-advanced.py#L110
+Tested and working on Python 3.5 
+
+No external dependencies.
+
 
 
