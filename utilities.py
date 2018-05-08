@@ -20,7 +20,7 @@ def method_is_staticmethod(cls, method_name):
     return isinstance(inspect.getattr_static(cls, method_name), staticmethod)
 
 def isBuiltIn(name):
-    return True if (name.startswith("__") and name.endswith("__")) else False
+    return name.startswith("__") and name.endswith("__")
 
 def get_user_defined_methods(cls):
     return [method_name for method_name in dir(cls) if callable(getattr(cls, method_name)) and
