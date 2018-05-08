@@ -72,17 +72,5 @@ def bindable_class_methods(cls):
     return cls
 
 
-def unbind_class_methods(cls):
-
-    if 'bind' in cls.__dict__ and callable(cls.__dict__['bind']):
-        delattr(cls, 'bind')
-
-    for method_name in get_user_defined_methods(cls):
-        method = getattr(cls, method_name)
-        if 'bind' in method.__dict__ and callable(method):
-            del method.__dict__['bind']   # add bind to method
-
-    return cls
-
 
 
